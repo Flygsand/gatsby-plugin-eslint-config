@@ -7,33 +7,26 @@ const { eslintConfig } = require("gatsby/dist/utils/eslint-config")
 const {
   rules: customGatsbyRules,
 } = require("gatsby/dist/utils/eslint/required")
-const webpackUtils = require("gatsby/dist/utils/webpack-utils")
 
 // Load GraphQL schema
-const { schema, program } = store.getState()
-
-// Check if using automatic jsx runtime
-const usingAutomaticJsxRuntime =
-  typeof webpackUtils.createWebpackConfig === "function"
-    ? webpackUtils.createWebpackConfig("develop", program) // Gatsby v4.1+
-    : webpackUtils.hasJsxRuntime()
+const { schema, config } = store.getState()
 
 // Load default configuration
-const config = eslintConfig(schema, usingAutomaticJsxRuntime).baseConfig
+const { baseConfig } = eslintConfig(schema, config.jsxRuntime === "automatic")
 
 module.exports = {
   configs: {
     recommended: {
-      ...config,
+      ...baseConfig,
 
       // Remove `gatsby/dist/utils/eslint/required` from `extends`
       // This module loads Gatsby's custom rules without prefixing with the plugin name
-      extends: config.extends.filter(
+      extends: baseConfig.extends.filter(
         module => !module.includes("gatsby/dist/utils/eslint/required")
       ),
 
       rules: {
-        ...config.rules,
+        ...baseConfig.rules,
 
         // Set defaults for Gatsby's custom rules
         ...Object.entries(customGatsbyRules).reduce(
